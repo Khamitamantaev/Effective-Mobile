@@ -62,6 +62,24 @@ app.patch("/appeal/complete/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.patch("/appeal/cancel/:id", async (req: Request, res: Response) => {
+  const data = req.params;
+  try {
+    const appeal = await prisma.appeal.update({
+      where: { id: parseInt(data.id) },
+      data: { status: "CANCELED" },
+    });
+
+    if (!appeal) {
+      return res.status(404).json({ error: "Appeal not found" });
+    }
+
+    res.json(appeal);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to start cancel appeal" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Efeective app listening on port ${port}`);
 });
