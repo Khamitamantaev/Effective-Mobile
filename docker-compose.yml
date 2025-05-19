@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:17.5-alpine
-    container_name: web_service_postgres
+    container_name: effective_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
