@@ -1,6 +1,6 @@
-# Foobar
+# Effective mobile app
 
-Effective-mobile приложение
+Система работы с обращениями.
 
 ## Installation
 
