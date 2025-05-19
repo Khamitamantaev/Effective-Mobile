@@ -5,7 +5,7 @@ import { Request, Response } from "express";
 const app = express();
 const prisma = new PrismaClient();
 const port = process.env.PORT;
-app.use(express.json())
+app.use(express.json());
 
 app.post("/appeal", async (req: Request, res: Response) => {
   const { topic, text } = req.body;
@@ -23,6 +23,24 @@ app.post("/appeal", async (req: Request, res: Response) => {
     res.status(201).json(appeal);
   } catch (error) {
     res.status(500).json({ error: "Failed to create appeal" });
+  }
+});
+
+app.patch("/appeal/progress/:id", async (req: Request, res: Response) => {
+  const data = req.params;
+  try {
+    const appeal = await prisma.appeal.update({
+      where: { id: parseInt(data.id) },
+      data: { status: "IN_PROGRESS" },
+    });
+
+    if (!appeal) {
+      return res.status(404).json({ error: "Appeal not found" });
+    }
+
+    res.json(appeal);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to start processing appeal" });
   }
 });
 

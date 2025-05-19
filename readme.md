@@ -15,16 +15,15 @@ npm install
 ```
 # Doker контейнера с postgres
 docker-compose up -d --build
+
 # Запуск миграции в базу
-
-
-# Запуск миграции в контейнер
 npm run pmdev
 
 # Обновление клиента prisma
 npm run pgc 
 
-
+# Запуск app index.ts
+npm run dev
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
