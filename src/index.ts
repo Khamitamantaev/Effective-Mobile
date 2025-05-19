@@ -80,6 +80,20 @@ app.patch("/appeal/cancel/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/appeals/all", async (req: Request, res: Response) => {
+  try {
+    const appeals = await prisma.appeal.findMany({});
+
+    if (appeals.length === 0) {
+      return res.status(404).json({ error: "Appeal not found" });
+    }
+
+    res.json(appeals);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to start cancel appeal" });
+  }
+})
+
 app.listen(port, () => {
   console.log(`Efeective app listening on port ${port}`);
 });
