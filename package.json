@@ -1,0 +1,32 @@
+{
+  "name": "effective-mobile",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Khamitamantaev/Effective-Mobile.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Khamitamantaev/Effective-Mobile/issues"
+  },
+  "homepage": "https://github.com/Khamitamantaev/Effective-Mobile#readme",
+  "dependencies": {
+    "@prisma/client": "^6.8.2",
+    "express": "^5.1.0",
+    "prisma": "^6.8.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.19",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
