@@ -44,6 +44,24 @@ app.patch("/appeal/progress/:id", async (req: Request, res: Response) => {
   }
 });
 
+app.patch("/appeal/complete/:id", async (req: Request, res: Response) => {
+  const data = req.params;
+  try {
+    const appeal = await prisma.appeal.update({
+      where: { id: parseInt(data.id) },
+      data: { status: "COMPLETED" },
+    });
+
+    if (!appeal) {
+      return res.status(404).json({ error: "Appeal not found" });
+    }
+
+    res.json(appeal);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to start complete appeal" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Efeective app listening on port ${port}`);
 });

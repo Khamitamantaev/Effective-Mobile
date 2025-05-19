@@ -8,6 +8,7 @@ Effective-mobile приложение
 
 ```bash
 npm install
+copy .example.env to env
 ```
 
 ## Первый запуск 
