@@ -2,12 +2,23 @@ import express from "express";
 import { PrismaClient } from "../generated/prisma";
 import { Request, Response } from "express";
 import { FilteredAppealsType } from "./types";
-import morgan from 'morgan'
+import morgan from "morgan";
+import {
+  APPEAL_NOT_FOUND,
+  CANCELED,
+  COMPLETED,
+  FAILED_CANCEL,
+  FAILED_COMPLETE,
+  FAILED_CREATE,
+  FAILED_PROCESS,
+  FAILED_PROGRESS_TO_CANCEL,
+  IN_PROGRESS,
+  PORT,
+} from "./constants";
 
 const app = express();
-app.use(morgan('tiny'))
+app.use(morgan("tiny"));
 const prisma = new PrismaClient();
-const port = process.env.PORT;
 app.use(express.json());
 
 app.post("/appeal", async (req: Request, res: Response) => {
@@ -25,7 +36,7 @@ app.post("/appeal", async (req: Request, res: Response) => {
     });
     res.status(201).json(appeal);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create appeal" });
+    res.status(500).json({ error: FAILED_CREATE });
   }
 });
 
@@ -34,16 +45,16 @@ app.patch("/appeal/progress/:id", async (req: Request, res: Response) => {
   try {
     const appeal = await prisma.appeal.update({
       where: { id: parseInt(data.id) },
-      data: { status: "IN_PROGRESS" },
+      data: { status: IN_PROGRESS },
     });
 
     if (!appeal) {
-      return res.status(404).json({ error: "Appeal not found" });
+      return res.status(404).json({ error: APPEAL_NOT_FOUND });
     }
 
     res.json(appeal);
   } catch (error) {
-    res.status(500).json({ error: "Failed to start processing appeal" });
+    res.status(500).json({ error: FAILED_PROCESS });
   }
 });
 
@@ -53,16 +64,16 @@ app.patch("/appeal/complete/:id", async (req: Request, res: Response) => {
   try {
     const appeal = await prisma.appeal.update({
       where: { id: parseInt(data.id) },
-      data: { status: "COMPLETED", solution },
+      data: { status: COMPLETED, solution },
     });
 
     if (!appeal) {
-      return res.status(404).json({ error: "Appeal not found" });
+      return res.status(404).json({ error: APPEAL_NOT_FOUND });
     }
 
     res.json(appeal);
   } catch (error) {
-    res.status(500).json({ error: "Failed to start complete appeal" });
+    res.status(500).json({ error: FAILED_COMPLETE });
   }
 });
 
@@ -72,16 +83,16 @@ app.patch("/appeal/cancel/:id", async (req: Request, res: Response) => {
   try {
     const appeal = await prisma.appeal.update({
       where: { id: parseInt(data.id) },
-      data: { status: "CANCELED", cancelReason },
+      data: { status: CANCELED, cancelReason },
     });
 
     if (!appeal) {
-      return res.status(404).json({ error: "Appeal not found" });
+      return res.status(404).json({ error: APPEAL_NOT_FOUND });
     }
 
     res.json(appeal);
   } catch (error) {
-    res.status(500).json({ error: "Failed to start cancel appeal" });
+    res.status(500).json({ error: FAILED_CANCEL });
   }
 });
 
@@ -90,12 +101,12 @@ app.get("/appeals/all", async (req: Request, res: Response) => {
     const appeals = await prisma.appeal.findMany({});
 
     if (appeals.length === 0) {
-      return res.status(404).json({ error: "Appeal not found" });
+      return res.status(404).json({ error: APPEAL_NOT_FOUND });
     }
 
     res.json(appeals);
   } catch (error) {
-    res.status(500).json({ error: "Failed to start cancel appeal" });
+    res.status(500).json({ error: FAILED_CANCEL });
   }
 });
 
@@ -144,32 +155,34 @@ app.get("/appeals/filter", async (req: Request, res: Response) => {
   }
 });
 
+app.patch(
+  "/appeals/cancel-in-progress",
+  async (req: Request, res: Response) => {
+    const { cancelReason } = req.body;
 
-app.patch('/appeals/cancel-in-progress', async (req: Request, res: Response) => {
-  const { cancelReason } = req.body;
+    if (!cancelReason) {
+      return res.status(400).json({ error: "Cancel reason is required" });
+    }
 
-  if (!cancelReason) {
-    return res.status(400).json({ error: 'Cancel reason is required' });
+    try {
+      const result = await prisma.appeal.updateMany({
+        where: { status: IN_PROGRESS },
+        data: {
+          status: CANCELED,
+          cancelReason,
+        },
+      });
+
+      res.json({
+        message: `Canceled ${result.count} appeals`,
+        count: result.count,
+      });
+    } catch (error) {
+      res.status(500).json({ error: FAILED_PROGRESS_TO_CANCEL });
+    }
   }
+);
 
-  try {
-    const result = await prisma.appeal.updateMany({
-      where: { status: 'IN_PROGRESS' },
-      data: { 
-        status: 'CANCELED',
-        cancelReason,
-      },
-    });
-
-    res.json({
-      message: `Canceled ${result.count} appeals`,
-      count: result.count,
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to cancel in-progress appeals' });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`Efeective app listening on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Effective app listening on port ${PORT}`);
 });
