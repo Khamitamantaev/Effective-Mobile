@@ -1,8 +1,11 @@
 import express from "express";
 import { PrismaClient } from "../generated/prisma";
 import { Request, Response } from "express";
+import { FilteredAppealsType } from "./types";
+import morgan from 'morgan'
 
 const app = express();
+app.use(morgan('tiny'))
 const prisma = new PrismaClient();
 const port = process.env.PORT;
 app.use(express.json());
@@ -92,7 +95,78 @@ app.get("/appeals/all", async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to start cancel appeal" });
   }
-})
+});
+
+app.get("/appeals/filter", async (req: Request, res: Response) => {
+  const { date, startDate, endDate } = req.query;
+
+  let filteredAppealsCurrent: FilteredAppealsType = [];
+  let filteredAppealsDiapazon: FilteredAppealsType = [];
+  if (date) {
+    const targetDate = new Date(date as string);
+    const nextDay = new Date(targetDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    filteredAppealsCurrent = await prisma.appeal.findMany({
+      where: {
+        createdAt: {
+          gt: targetDate,
+          lt: nextDay,
+        },
+      },
+    });
+  }
+
+  if (startDate && endDate) {
+    const start = new Date(startDate as string);
+    const end = new Date(endDate as string);
+    end.setDate(end.getDate() + 1);
+
+    filteredAppealsDiapazon = await prisma.appeal.findMany({
+      where: {
+        createdAt: {
+          gt: start,
+          lt: end,
+        },
+      },
+    });
+  }
+
+  try {
+    res.json({
+      current: filteredAppealsCurrent,
+      diapazon: filteredAppealsDiapazon,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Somethong wrong" });
+  }
+});
+
+
+app.patch('/appeals/cancel-in-progress', async (req: Request, res: Response) => {
+  const { cancelReason } = req.body;
+
+  if (!cancelReason) {
+    return res.status(400).json({ error: 'Cancel reason is required' });
+  }
+
+  try {
+    const result = await prisma.appeal.updateMany({
+      where: { status: 'IN_PROGRESS' },
+      data: { 
+        status: 'CANCELED',
+        cancelReason,
+      },
+    });
+
+    res.json({
+      message: `Canceled ${result.count} appeals`,
+      count: result.count,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to cancel in-progress appeals' });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Efeective app listening on port ${port}`);
