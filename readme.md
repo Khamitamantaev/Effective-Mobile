@@ -23,9 +23,12 @@ npm run pmdev
 # Обновление клиента prisma
 npm run pgc 
 
-# Запуск app index.ts
+# Запуск development app index.ts
 npm run dev
-## Contributing
+
+## Build production app index.js
+npm run build
+npm run start
 
 Pull requests are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
