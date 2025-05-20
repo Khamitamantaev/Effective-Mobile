@@ -49,10 +49,11 @@ app.patch("/appeal/progress/:id", async (req: Request, res: Response) => {
 
 app.patch("/appeal/complete/:id", async (req: Request, res: Response) => {
   const data = req.params;
+  const { solution } = req.body;
   try {
     const appeal = await prisma.appeal.update({
       where: { id: parseInt(data.id) },
-      data: { status: "COMPLETED" },
+      data: { status: "COMPLETED", solution },
     });
 
     if (!appeal) {
@@ -67,10 +68,11 @@ app.patch("/appeal/complete/:id", async (req: Request, res: Response) => {
 
 app.patch("/appeal/cancel/:id", async (req: Request, res: Response) => {
   const data = req.params;
+  const { cancelReason } = req.body;
   try {
     const appeal = await prisma.appeal.update({
       where: { id: parseInt(data.id) },
-      data: { status: "CANCELED" },
+      data: { status: "CANCELED", cancelReason },
     });
 
     if (!appeal) {
